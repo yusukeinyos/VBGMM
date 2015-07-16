@@ -23,6 +23,10 @@ namespace VBGMM
         static double[,] X; //サンプルデータ　(S×D)
         static void Main(string[] args)
         {
+            double[] alpha, beta, gamma=new double[M];
+            double[][] u;
+            double[][,] V;
+            Update(out alpha, out beta, gamma, out u, out V);
         }
         //----------------------------------------------------------------------------------
         static void init()
@@ -36,11 +40,14 @@ namespace VBGMM
 
         }
         //----------------------------------------------------------------------------------
-        static void Update(double[] alpha, double[] beta, double[] gamma, double[][] u, double[][,] V)
+        static void Update(out double[] alpha, out double[] beta, double[] gamma, out double[][] u, out double[][,] V)
         {
             double[,] lo = new double[S, M];
             double[,] r = new double[S, M];
             double[] ita = new double[M];
+            alpha = new double[M]; beta = new double[M]; gamma = new double[M];
+            u = new double[M][];
+            V = new double[M][,];
             double[] old_alpha = new double[M], old_beta = new double[M], old_gamma = new double[M];
             var old_V = (double[][,])V.Clone();
 
