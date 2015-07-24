@@ -46,7 +46,8 @@ namespace VBGMM
         static void predicted_Distribution_output(double[][] u, double[][,] V)
         {
             int Num = 100; //等高線描画用プロット数
-            
+            RandomMT rand = new RandomMT();
+
             double[][] x_toukou = new double[Num][]; //等高線描画用プロット点
 
             for (int m = 0; m < M; m++)
@@ -62,7 +63,7 @@ namespace VBGMM
                 for (int n = 0; n < Num; n++)
                 {
                     double[] y = new double[2];
-                    y[0] = -5 + n * 0.1;
+                    y[0] = 2.0 * lambda[0] * rand.Double() - lambda[0];
                     y[1] = Math.Sqrt(lambda[1] * (1 - y[0] * y[0] / lambda[0]));
 
                     x_toukou[n] = Mt.Add(Mt.Mul(U.T(), y), u[m]);
