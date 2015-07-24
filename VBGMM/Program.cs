@@ -23,20 +23,55 @@ namespace VBGMM
         static double[,] X; //サンプルデータ　(S×D)
         static void Main(string[] args)
         {
-            double[] alpha, beta, gamma=new double[M];
+            double[] alpha, beta, gamma = new double[M];
             double[][] u;
             double[][,] V;
+            init();
             Update(out alpha, out beta, gamma, out u, out V);
+            predicted_Distribution_output(u, V);
         }
         //----------------------------------------------------------------------------------
         static void init()
         {
+            X = CsvFileIO.CsvFileIO.ReadData("");
             S = X.GetLength(0);
             D = X.GetLength(1);
             M = 5;
             alpha0 = 3.0;
             beta0 = 3.0;
             gamma0 = 3.0;
+
+        }
+        //----------------------------------------------------------------------------------
+        static void predicted_Distribution_output(double[][] u, double[][,] V)
+        {
+            int Num = 100; //等高線描画用プロット数
+            
+            double[][] x_toukou = new double[Num][]; //等高線描画用プロット点
+
+            for (int m = 0; m < M; m++)
+            {
+                double[,] U; //直交固有ベクトル行列
+                double[] lambda; //固有値
+                
+                Tuple<double[,],double[]> tu;
+                tu = Mt.EigenValueDecompositionM(V[m]);
+                lambda = tu.Item2;
+                U = tu.Item1;
+
+                for (int n = 0; n < Num; n++)
+                {
+                    double[] y = new double[2];
+                    y[0] = -5 + n * 0.1;
+                    y[1] = Math.Sqrt(lambda[1] * (1 - y[0] * y[0] / lambda[0]));
+
+                    x_toukou[n] = Mt.Add(Mt.Mul(U.T(), y), u[m]);
+                }
+
+                CsvFileIO.CsvFileIO.WriteData("x_toukou(M="+m+").csv", jagTomatrix(x_toukou));
+            }
+
+            CsvFileIO.CsvFileIO.WriteData("mu_matrix.csv", jagTomatrix(u));
 
         }
         //----------------------------------------------------------------------------------
@@ -175,6 +210,18 @@ namespace VBGMM
             for (int i = 0; i < mat.GetLength(0); i++)
                 sum += mat[i, column_num];
             return sum;
+        }
+        static double[,] jagTomatrix(double[][] input)
+        {
+            double[,] output = new double[input.GetLength(0), input[0].Length];
+            for (int i = 0; i < input.GetLength(0); i++)
+            {
+                for (int j = 0; j < input[0].Length; j++)
+                {
+                    output[i, j] = input[i][j];
+                }
+            }
+            return output;
         }
     }
 }
