@@ -27,20 +27,24 @@ namespace VBGMM
             double[][] u;
             double[][,] V;
             init();
+            CsvFileIO.CsvFileIO.WriteData("motoData.csv", X);
+
             Update(out alpha, out beta, gamma, out u, out V);
             predicted_Distribution_output(u, V);
         }
         //----------------------------------------------------------------------------------
         static void init()
         {
-            X = CsvFileIO.CsvFileIO.ReadData("");
+            X = CsvFileIO.CsvFileIO.ReadData("GaussianMixtureData20130501.txt");
             S = X.GetLength(0);
             D = X.GetLength(1);
-            M = 5;
+            M = 3;
             alpha0 = 3.0;
             beta0 = 3.0;
             gamma0 = 3.0;
-
+            u0 = new double[] { 1.0, 0.0 };
+            V0 = Mt.UnitMatrix(D);
+            V0_inv = V0.Inverse();
         }
         //----------------------------------------------------------------------------------
         static void predicted_Distribution_output(double[][] u, double[][,] V)
@@ -54,8 +58,8 @@ namespace VBGMM
             {
                 double[,] U; //直交固有ベクトル行列
                 double[] lambda; //固有値
-                
-                Tuple<double[,],double[]> tu;
+
+                Tuple<double[,], double[]> tu;
                 tu = Mt.EigenValueDecompositionM(V[m]);
                 lambda = tu.Item2;
                 U = tu.Item1;
@@ -63,13 +67,13 @@ namespace VBGMM
                 for (int n = 0; n < Num; n++)
                 {
                     double[] y = new double[2];
-                    y[0] = 2.0 * lambda[0] * rand.Double() - lambda[0];
+                    y[0] = 2.0 * lambda[0] * rand.Double() - lambda[0]; //楕円の定義域内に
                     y[1] = Math.Sqrt(lambda[1] * (1 - y[0] * y[0] / lambda[0]));
 
                     x_toukou[n] = Mt.Add(Mt.Mul(U.T(), y), u[m]);
                 }
 
-                CsvFileIO.CsvFileIO.WriteData("x_toukou(M="+m+").csv", jagTomatrix(x_toukou));
+                CsvFileIO.CsvFileIO.WriteData("x_toukou(M=" + m + ").csv", jagTomatrix(x_toukou));
             }
 
             CsvFileIO.CsvFileIO.WriteData("mu_matrix.csv", jagTomatrix(u));
@@ -84,6 +88,14 @@ namespace VBGMM
             alpha = new double[M]; beta = new double[M]; gamma = new double[M];
             u = new double[M][];
             V = new double[M][,];
+            for (int m = 0; m < M; m++)
+            {
+                alpha[m] = alpha0;
+                beta[m] = beta0;
+                gamma[m] = gamma0;
+                u[m] = (double[])u0.Clone();
+                V[m] = (double[,])V0.Clone();
+            }
             double[] old_alpha = new double[M], old_beta = new double[M], old_gamma = new double[M];
             var old_V = (double[][,])V.Clone();
 
@@ -106,7 +118,10 @@ namespace VBGMM
                 {
                     double lo_sum = sumOfmatrix_row(lo, i);
                     for (int j = 0; j < M; j++)
-                        r[i, j] = lo[i, j] / lo_sum;
+                    {
+                        if (lo_sum != 0)
+                            r[i, j] = lo[i, j] / lo_sum;
+                    }
                 }
                 //Update ita
                 for (int j = 0; j < M; j++)

@@ -43,7 +43,7 @@ namespace CsvFileIO
             // 列数を数えるために適当な配列に格納して数えてみる
             string temp = (string)TextData[0]; // string型にキャスト
             // splitメソッドで文字列アレイにして数える
-            string[] temp2 = temp.Split(',');
+            string[] temp2 = temp.Split('\t');
             int col_count = temp2.Length; // 列数を数えているだけ
             J = col_count;
             // -----------------------------------
@@ -58,7 +58,7 @@ namespace CsvFileIO
             foreach (string sOutput in TextData)
             {
                 // 一行ずつ読み込んで，各行をsplitメソッドで分ける
-                string[] temp_line = sOutput.Split(',');
+                string[] temp_line = sOutput.Split('\t');
                 foreach (string value in temp_line)
                 {
                     num[a][b] = Convert.ToString(value);
