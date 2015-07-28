@@ -42,8 +42,8 @@ namespace VBGMM
             alpha0 = 3.0;
             beta0 = 3.0;
             gamma0 = 3.0;
-            u0 = new double[] { 1.0, 0.0 };
-            V0 = Mt.UnitMatrix(D);
+            u0 = new double[] { 0.0, 0.0 };
+            V0 = Mt.Mul(0.001, Mt.UnitMatrix(D));
             V0_inv = V0.Inverse();
         }
         //----------------------------------------------------------------------------------
@@ -127,9 +127,11 @@ namespace VBGMM
                 for (int j = 0; j < M; j++)
                     ita[j] = sumOfmatrix_column(r, j);
                 //Update alpha,beta,gamma
-                alpha.CopyTo(old_alpha);
-                beta.CopyTo(old_beta);
-                gamma.CopyTo(old_gamma);
+                old_alpha = (double[])alpha.Clone();
+                old_beta = (double[])beta.Clone();
+                old_gamma = (double[])gamma.Clone();
+
+
                 for (int j = 0; j < M; j++)
                 {
                     alpha[j] = alpha0 + ita[j];
