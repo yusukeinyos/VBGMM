@@ -38,7 +38,7 @@ namespace VBGMM
             X = CsvFileIO.CsvFileIO.ReadData("GaussianMixtureData20130501.txt");
             S = X.GetLength(0);
             D = X.GetLength(1);
-            M = 3;
+            M = 4;
             alpha0 = 3.0;
             beta0 = 3.0;
             gamma0 = 3.0;
@@ -49,8 +49,8 @@ namespace VBGMM
         //----------------------------------------------------------------------------------
         static void predicted_Distribution_output(double[][] u, double[][,] V)
         {
-            int Num = 800; //等高線描画用プロット数
-            int Ratio = 20000;
+            int Num = 300; //等高線描画用プロット数
+            int Ratio = 10000000;
             RandomMT rand = new RandomMT();
 
             double[][] x_toukou = new double[Num][]; //等高線描画用プロット点
@@ -70,14 +70,14 @@ namespace VBGMM
                 {
                     sign_flag = !sign_flag;
                     double[] y = new double[2];
-                    y[0] = 2.0 * lambda[0] * Ratio * rand.Double() - lambda[0] * Ratio; //楕円の定義域内に
+                    y[1] = 2.0 * Math.Sqrt(lambda[0] * Ratio) * rand.Double() - Math.Sqrt(lambda[0] * Ratio); //楕円の定義域内に
                     if (sign_flag)
-                        y[1] = Math.Sqrt(lambda[1] * Ratio * (1 - y[0] * y[0] / (lambda[0] * Ratio)));
+                        y[0] = Math.Sqrt(lambda[1] * Ratio - y[1] * y[1] * lambda[1] / lambda[0]); //次元を逆にしたら上手く等高線が書けたが．．．たぶん直交行列Uの構成の仕方が原因
                     else
-                        y[1] = -Math.Sqrt(lambda[1] * Ratio * (1 - y[0] * y[0] / (lambda[0] * Ratio)));
+                        y[0] = -Math.Sqrt(lambda[1] * Ratio - y[1] * y[1] * lambda[1] / lambda[0]);
 
 
-                    x_toukou[n] = Mt.Add(Mt.Mul(U.T(), y), u[m]);
+                    x_toukou[n] = Mt.Add(Mt.Mul(U.Inverse(), y), u[m]);
                 }
 
                 CsvFileIO.CsvFileIO.WriteData("x_toukou(M=" + m + ").csv", jagTomatrix(x_toukou));
