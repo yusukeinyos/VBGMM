@@ -27,7 +27,7 @@ namespace VBGMM
             double[][] u;
             double[][,] V;
             init();
-            CsvFileIO.CsvFileIO.WriteData("motoData.csv", X);
+            //CsvFileIO.CsvFileIO.WriteData("motoData.csv", X);
 
             Update(out alpha, out beta, gamma, out u, out V);
             predicted_Distribution_output(u, V);
@@ -42,14 +42,15 @@ namespace VBGMM
             alpha0 = 3.0;
             beta0 = 3.0;
             gamma0 = 3.0;
-            u0 = new double[] { 0.0, 0.0 };
+            u0 = new double[] { 1.0, 1.0 };
             V0 = Mt.Mul(0.001, Mt.UnitMatrix(D));
             V0_inv = V0.Inverse();
         }
         //----------------------------------------------------------------------------------
         static void predicted_Distribution_output(double[][] u, double[][,] V)
         {
-            int Num = 100; //等高線描画用プロット数
+            int Num = 800; //等高線描画用プロット数
+            int Ratio = 20000;
             RandomMT rand = new RandomMT();
 
             double[][] x_toukou = new double[Num][]; //等高線描画用プロット点
@@ -64,11 +65,17 @@ namespace VBGMM
                 lambda = tu.Item2;
                 U = tu.Item1;
 
+                bool sign_flag = true;
                 for (int n = 0; n < Num; n++)
                 {
+                    sign_flag = !sign_flag;
                     double[] y = new double[2];
-                    y[0] = 2.0 * lambda[0] * rand.Double() - lambda[0]; //楕円の定義域内に
-                    y[1] = Math.Sqrt(lambda[1] * (1 - y[0] * y[0] / lambda[0]));
+                    y[0] = 2.0 * lambda[0] * Ratio * rand.Double() - lambda[0] * Ratio; //楕円の定義域内に
+                    if (sign_flag)
+                        y[1] = Math.Sqrt(lambda[1] * Ratio * (1 - y[0] * y[0] / (lambda[0] * Ratio)));
+                    else
+                        y[1] = -Math.Sqrt(lambda[1] * Ratio * (1 - y[0] * y[0] / (lambda[0] * Ratio)));
+
 
                     x_toukou[n] = Mt.Add(Mt.Mul(U.T(), y), u[m]);
                 }
@@ -82,6 +89,7 @@ namespace VBGMM
         //----------------------------------------------------------------------------------
         static void Update(out double[] alpha, out double[] beta, double[] gamma, out double[][] u, out double[][,] V)
         {
+            RandomMT rnd = new RandomMT();
             double[,] lo = new double[S, M];
             double[,] r = new double[S, M];
             double[] ita = new double[M];
@@ -93,9 +101,11 @@ namespace VBGMM
                 alpha[m] = alpha0;
                 beta[m] = beta0;
                 gamma[m] = gamma0;
-                u[m] = (double[])u0.Clone();
+                //u[m] = (double[])u0.Clone();
                 V[m] = (double[,])V0.Clone();
             }
+            u = New.Array(M, m => matrixTojag(X)[rnd.Int(S)].ToArray());
+
             double[] old_alpha = new double[M], old_beta = new double[M], old_gamma = new double[M];
             var old_V = (double[][,])V.Clone();
 
@@ -240,6 +250,10 @@ namespace VBGMM
                 }
             }
             return output;
+        }
+        static double[][] matrixTojag(double[,] input)
+        {
+            return New.Array(input.GetLength(0), m => New.Array(input.GetLength(1), s => input[m, s]));
         }
     }
 }
